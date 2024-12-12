@@ -1,79 +1,110 @@
-import React, { useState, useEffect } from 'react'; 
-import { fetchTodos, addTodo, updateTodo, deleteTodo } from '../services/todoService'; // import service functtions for api interaction
+import React, { useState, useEffect } from 'react';
+import { fetchTodos, addTodo, updateTodo, deleteTodo } from '../services/todoService';
 
 const TodoApp = () => {
-  // State for storing the list of todos
   const [todos, setTodos] = useState([]);
-  // State for storing the new todo input
   const [newTodo, setNewTodo] = useState('');
+  const [editMode, setEditMode] = useState(null); // Track which todo is being edited
+  const [editTitle, setEditTitle] = useState(''); // Track updated title
 
-  // Fetch todos from the server when the component mounts
+  // Fetch todos on load
   useEffect(() => {
     const getTodos = async () => {
       try {
-        const todosFromServer = await fetchTodos(); // Call API to fetch todos
-        setTodos(todosFromServer); // Update state with fetched todos
+        const todosFromServer = await fetchTodos();
+        setTodos(todosFromServer);
       } catch (error) {
-        console.error('Error fetching todos:', error); // Handle any errors
+        console.error('Error fetching todos:', error);
       }
     };
-    getTodos(); // Trigger fetching of todos
-  }, []); // Empty dependency array ensures this runs only once on mount
+    getTodos();
+  }, []);
 
-  // Function to handle adding a new todo
+  // Add a new todo
   const handleAddTodo = async () => {
-    if (!newTodo) return; // Prevent adding empty todos
+    if (!newTodo) return;
     try {
-      const addedTodo = await addTodo(newTodo); // Call API to add a todo
-      setTodos([...todos, addedTodo]); // Update state with the new todo
-      setNewTodo(''); // Clear the input field
+      const addedTodo = await addTodo(newTodo);
+      setTodos([...todos, addedTodo]);
+      setNewTodo('');
     } catch (error) {
-      console.error('Error adding todo:', error); // Handle any errors
+      console.error('Error adding todo:', error);
     }
   };
 
-  // Function to handle deleting a todo
+  // Delete a todo
   const handleDeleteTodo = async (id) => {
     try {
-      await deleteTodo(id); // Call API to delete the todo
-      setTodos(todos.filter((todo) => todo._id !== id)); // Remove the deleted todo from state
+      await deleteTodo(id);
+      setTodos(todos.filter((todo) => todo._id !== id));
     } catch (error) {
-      console.error('Error deleting todo:', error); // Handle any errors
+      console.error('Error deleting todo:', error);
     }
   };
 
-  // Function to handle marking a todo as completed
+  // Mark a todo as completed
   const handleUpdateTodo = async (id) => {
     try {
-      const updatedTodo = await updateTodo(id, { completed: true }); // Call API to update the todo
-      setTodos(
-        todos.map((todo) => (todo._id === id ? updatedTodo : todo)) // Update state with the modified todo
-      );
+      const updatedTodo = await updateTodo(id, { completed: true });
+      setTodos(todos.map((todo) => (todo._id === id ? updatedTodo : todo)));
     } catch (error) {
-      console.error('Error updating todo:', error); // Handle any errors
+      console.error('Error updating todo:', error);
+    }
+  };
+
+  // Save the updated title
+  const handleSaveEdit = async (id) => {
+    if (!editTitle) return;
+    try {
+      const updatedTodo = await updateTodo(id, { title: editTitle });
+      setTodos(todos.map((todo) => (todo._id === id ? updatedTodo : todo)));
+      setEditMode(null); // Exit edit mode
+      setEditTitle(''); // Clear the input
+    } catch (error) {
+      console.error('Error saving updated todo:', error);
     }
   };
 
   return (
     <div>
       <h1>Todo List</h1>
-      {/* Input for adding a new todo */}
       <input
         type="text"
         placeholder="Add a new todo"
-        value={newTodo} // Bind input value to state
-        onChange={(e) => setNewTodo(e.target.value)} // Update state on input change
+        value={newTodo}
+        onChange={(e) => setNewTodo(e.target.value)}
       />
-      <button onClick={handleAddTodo}>Add Todo</button> {/* Button to trigger adding a todo */}
-      
-      {/* List of todos */}
+      <button onClick={handleAddTodo}>Add Todo</button>
       <ul>
         {todos.map((todo) => (
           <li key={todo._id}>
-            {/* Display the title and completion status */}
-            {todo.title} - {todo.completed ? 'Completed' : 'Pending'}
-            <button onClick={() => handleUpdateTodo(todo._id)}>Mark as Completed</button>
-            <button onClick={() => handleDeleteTodo(todo._id)}>Delete</button>
+            {editMode === todo._id ? (
+              <input
+                type="text"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+              />
+            ) : (
+              <span
+                style={{
+                  textDecoration: todo.completed ? 'line-through' : 'none',
+                }}
+              >
+                {todo.title} - {todo.completed ? 'Completed' : 'Pending'}
+              </span>
+            )}
+            {editMode === todo._id ? (
+              <>
+                <button onClick={() => handleSaveEdit(todo._id)}>Save</button>
+                <button onClick={() => setEditMode(null)}>Cancel</button>
+              </>
+            ) : (
+              <>
+                <button onClick={() => setEditMode(todo._id)}>Edit</button>
+                <button onClick={() => handleUpdateTodo(todo._id)}>Mark as Completed</button>
+                <button onClick={() => handleDeleteTodo(todo._id)}>Delete</button>
+              </>
+            )}
           </li>
         ))}
       </ul>
@@ -81,4 +112,4 @@ const TodoApp = () => {
   );
 };
 
-export default TodoApp; // Export the component
+export default TodoApp;
