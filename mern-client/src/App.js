@@ -1,12 +1,21 @@
-import React from "react";
-import TodoApp from "./TodoApp";
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import TodoApp from './components/TodoApp';
+import CompletedTodos from './components/CompletedTodos';
 
-function App() {
+const App = () => {
   return (
-    <div className="App">
-      <TodoApp />
-    </div>
+    <Router>
+      <nav>
+        <Link to="/">Home</Link>
+        <Link to="/completed">Completed Todos</Link>
+      </nav>
+      <Routes>
+        <Route path="/" element={<TodoApp />} />
+        <Route path="/completed" element={<CompletedTodos />} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;
