@@ -2,53 +2,48 @@ const express = require('express');
 const router = express.Router();
 const Todo = require('../models/todo');
 
-// Get all todos or filter completed
-router.get('/todos', async (req, res) => {
+// Add a comment to a todo
+router.post('/:id/comments', async (req, res) => {
   try {
-    const { completed } = req.query;
-    const query = completed ? { completed: completed === 'true' } : {};
-    const todos = await Todo.find(query);
-    res.json(todos);
-  } catch (err) {
+    const { text } = req.body;
+    const todo = await Todo.findById(req.params.id);
+    if (!todo) return res.status(404).json({ msg: 'Todo not found' });
+
+    todo.comments.push({ text });
+    await todo.save();
+    res.json(todo.comments);
+  } catch (error) {
+    console.error('Error adding comment:', error);
     res.status(500).send('Server Error');
   }
 });
 
-// Add new todo
-router.post('/todos', async (req, res) => {
-  const { title } = req.body;
+// Get all comments for a todo
+router.get('/:id/comments', async (req, res) => {
   try {
-    const newTodo = new Todo({
-      title,
-    });
-    const savedTodo = await newTodo.save();
-    res.json(savedTodo);
-  } catch (err) {
+    const todo = await Todo.findById(req.params.id);
+    if (!todo) return res.status(404).json({ msg: 'Todo not found' });
+
+    res.json(todo.comments);
+  } catch (error) {
+    console.error('Error fetching comments:', error);
     res.status(500).send('Server Error');
   }
 });
 
-// Update a todo
-router.put('/todos/:id', async (req, res) => {
-  const { title, completed } = req.body;
+// Delete a comment
+router.delete('/:id/comments/:commentId', async (req, res) => {
   try {
-    const updatedTodo = await Todo.findByIdAndUpdate(
-      req.params.id,
-      { title, completed },
-      { new: true }
+    const todo = await Todo.findById(req.params.id);
+    if (!todo) return res.status(404).json({ msg: 'Todo not found' });
+
+    todo.comments = todo.comments.filter(
+      (comment) => comment._id.toString() !== req.params.commentId
     );
-    res.json(updatedTodo);
-  } catch (err) {
-    res.status(500).send('Server Error');
-  }
-});
-
-// Delete a todo
-router.delete('/todos/:id', async (req, res) => {
-  try {
-    await Todo.findByIdAndDelete(req.params.id);
-    res.json({ msg: 'Todo deleted' });
-  } catch (err) {
+    await todo.save();
+    res.json(todo.comments);
+  } catch (error) {
+    console.error('Error deleting comment:', error);
     res.status(500).send('Server Error');
   }
 });

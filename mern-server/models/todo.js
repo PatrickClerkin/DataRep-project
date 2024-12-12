@@ -1,15 +1,22 @@
-const mongoose = require('mongoose'); // Import Mongoose 
+const mongoose = require('mongoose');
+
 // TODO model schema
 const TodoSchema = new mongoose.Schema({
-  title: { 
+  title: {
     type: String,
     required: true,
   },
-  completed: { 
-    
+  completed: {
     type: Boolean,
     default: false,
   },
+  comments: [
+    {
+      text: { type: String, required: true },
+      createdAt: { type: Date, default: Date.now },
+    },
+  ],
 });
-// Export the model 
+
+// Export the model
 module.exports = mongoose.model('Todo', TodoSchema);

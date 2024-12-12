@@ -1,18 +1,16 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import TodoApp from './components/TodoApp';
 import CompletedTodos from './components/CompletedTodos';
+import CommentsPage from './components/CommentsPage';
 
 const App = () => {
   return (
     <Router>
-      <nav>
-        <Link to="/">Home</Link>
-        <Link to="/completed">Completed Todos</Link>
-      </nav>
       <Routes>
         <Route path="/" element={<TodoApp />} />
         <Route path="/completed" element={<CompletedTodos />} />
+        <Route path="/comments/:todoId" element={<CommentsPage />} />
       </Routes>
     </Router>
   );
