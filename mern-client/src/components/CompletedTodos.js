@@ -6,8 +6,8 @@ const CompletedTodos = () => {
 
   useEffect(() => {
     const getCompletedTodos = async () => {
-      const todosFromServer = await fetchTodos();
-      setCompletedTodos(todosFromServer.filter((todo) => todo.completed)); // Only fetch completed todos
+      const todos = await fetchTodos();
+      setCompletedTodos(todos.filter((todo) => todo.completed));
     };
     getCompletedTodos();
   }, []);
@@ -18,7 +18,7 @@ const CompletedTodos = () => {
       <ul>
         {completedTodos.map((todo) => (
           <li key={todo._id}>
-            {todo.title}
+            {todo.title} - Due: {new Date(todo.dueDate).toLocaleString()}
           </li>
         ))}
       </ul>
